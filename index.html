@@ -896,6 +896,7 @@
       <a href="#/memeland" class="nav-tab" data-route="memeland">MemeLand</a>
       <a href="#/trust"    class="nav-tab" data-route="trust">Trust</a>
       <a href="#/locker"   class="nav-tab" data-route="locker">Locker</a>
+      <a href="#/staking"  class="nav-tab" data-route="staking">Staking</a>
     </div>
 
     <div class="nav-right">
@@ -924,6 +925,7 @@
   <a href="#/memeland" data-route="memeland">MemeLand</a>
   <a href="#/trust"    data-route="trust">Trust</a>
   <a href="#/locker"   data-route="locker">Locker</a>
+  <a href="#/staking"  data-route="staking">Staking</a>
   <a href="https://x.com/SUI__AGENT" target="_blank" rel="noopener">𝕏 Twitter</a>
   <a href="https://t.me/+AHZzczUoOeYzMThk" target="_blank" rel="noopener">Telegram</a>
   <a href="#/setup" style="margin-top:20px;background:var(--grad);color:#04101a;text-align:center;border-radius:8px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;border-bottom:none;">Deploy Agent</a>
@@ -1979,6 +1981,76 @@ pnpm start <span class="str">--characters="characters/agent-trader.json"</span>
   </div>
 </section>
 
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PAGE: STAKING — AGENT staking + creator reward pools (v8.0.0)
+     ════════════════════════════════════════════════════════════════════ -->
+<section class="page-tab" data-page="staking" style="padding:0;">
+<section id="staking" style="padding:100px 24px;background:var(--bg)">
+  <div style="max-width:1100px;margin:0 auto">
+
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div class="label-eyebrow">◈ AGENT STAKING</div>
+      <h2 class="h-section" style="margin-top:6px">Stake $AGENT, Earn Rewards</h2>
+      <p class="body-text" style="margin-top:10px">Lock AGENT for 30 / 90 / 180 days. Earn protocol fees + creator-pool rewards. All on-chain, verifiable on Sui mainnet.</p>
+      <div id="stIndexerBadge" class="badge-pill" data-st-indexer-badge style="margin-top:14px;cursor:pointer" title="Click to refresh"><span data-st-indexer-dot>●</span><span data-st-indexer-text>indexer: …</span></div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid gap-4 mb-8" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <div class="stat-tile"><div class="lbl">Your stake</div><div class="val" id="stMyStake">— AGENT</div></div>
+      <div class="stat-tile"><div class="lbl">Your weighted score</div><div class="val" id="stMyScore">—</div></div>
+      <div class="stat-tile"><div class="lbl">Total staked</div><div class="val" id="stTotalStaked">— AGENT</div></div>
+      <div class="stat-tile"><div class="lbl">Active stakers</div><div class="val" id="stStakerCount">—</div></div>
+    </div>
+
+    <!-- Stake form -->
+    <div class="panel mb-8">
+      <div class="label-eyebrow">◈ STAKE</div>
+      <h3 class="h-section" style="font-size:1.2rem;margin-bottom:18px">Lock AGENT to start earning</h3>
+
+      <label class="field-label">Amount (AGENT, min 100)</label>
+      <input id="stStakeAmount" type="number" min="100" step="1" placeholder="100" class="field" style="margin-bottom:18px"/>
+
+      <label class="field-label">Lock duration</label>
+      <div style="display:flex;gap:8px;margin-bottom:24px">
+        <button class="btn-tab active" data-st-tier="0">30 days · 1.000×</button>
+        <button class="btn-tab" data-st-tier="1">90 days · 1.025×</button>
+        <button class="btn-tab" data-st-tier="2">180 days · 1.050×</button>
+      </div>
+
+      <button id="stStakeBtn" class="btn-primary" style="width:100%">Stake AGENT</button>
+      <div id="stStakeStatus" class="font-mono text-xs" style="margin-top:14px;color:var(--text-dim);min-height:18px"></div>
+    </div>
+
+    <!-- My active receipts -->
+    <div class="panel mb-8">
+      <div class="label-eyebrow">◈ MY POSITIONS</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h3 class="h-section" style="font-size:1.2rem">Active stakes</h3>
+        <button id="stRefreshMine" class="btn-ghost" style="font-size:0.7rem;padding:6px 12px;min-height:32px">Refresh</button>
+      </div>
+      <div id="stMyReceipts"><div class="body-text" style="text-align:center;padding:32px 0">Connect wallet to see your stakes.</div></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="panel mb-8">
+      <div class="label-eyebrow">◈ LEADERBOARD</div>
+      <h3 class="h-section" style="font-size:1.2rem;margin-bottom:14px">Top stakers (weighted)</h3>
+      <div id="stLeaderboard"><div class="body-text" style="text-align:center;padding:32px 0">Loading…</div></div>
+    </div>
+
+    <!-- Creator pools -->
+    <div class="panel">
+      <div class="label-eyebrow">◈ CREATOR POOLS</div>
+      <h3 class="h-section" style="font-size:1.2rem;margin-bottom:14px">Join a meme creator's reward pool</h3>
+      <div id="stCreatorPools"><div class="body-text" style="text-align:center;padding:32px 0">Loading…</div></div>
+    </div>
+
+  </div>
+</section>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════════
@@ -6993,6 +7065,248 @@ if (mlTokenIdParam) {
 setInterval(mlLoadTokens, 30000);
 
 })(); // end IIFE
+
+
+// ════════════════════════════════════════════════════════════════
+// STAKING TAB — v8.0.0 (drop-in module, no external deps)
+// Uses existing: BACKEND, connectedWallet, signAndExecuteTx,
+//                window.__SuiTransaction, window.suiClientInstance
+// ════════════════════════════════════════════════════════════════
+(function () {
+  const STK_API = 'https://backend-production-d4c4b.up.railway.app';
+  const AGENT_DECIMALS = 6;
+  const TIER_LABELS = ['30d · 1.000×', '90d · 1.025×', '180d · 1.050×'];
+  let stkSelectedTier = 0;
+  let stkPoolCache = [];
+
+  // ── helpers ───────────────────────────────────────────────────
+  function fmtAgent(raw) {
+    if (raw == null) return '—';
+    const n = Number(BigInt(raw)) / Math.pow(10, AGENT_DECIMALS);
+    return n.toLocaleString(undefined, { maximumFractionDigits: 4 }) + ' AGENT';
+  }
+  function toRaw(human) {
+    return BigInt(Math.round(Number(human) * Math.pow(10, AGENT_DECIMALS))).toString();
+  }
+  function setStatus(msg, color) {
+    const el = document.getElementById('stStakeStatus');
+    if (el) { el.textContent = msg || ''; el.style.color = color || 'var(--text-dim)'; }
+  }
+  function senderOrThrow() {
+    const a = window.connectedWallet?.address;
+    if (!a) throw new Error('Connect your wallet first.');
+    return a;
+  }
+  async function postBuild(path, body) {
+    const r = await fetch(STK_API + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (!j.success) throw new Error(j.error || 'backend error');
+    return j;
+  }
+  async function signTxBytes(b64) {
+    let Tx = window.__SuiTransaction;
+    let cli = window.suiClientInstance;
+    if (!Tx || !cli) {
+      let w = 0; while ((!window.__SuiTransaction || !window.suiClientInstance) && w < 6000) { await new Promise(r => setTimeout(r, 300)); w += 300; }
+      Tx = window.__SuiTransaction; cli = window.suiClientInstance;
+    }
+    if (!Tx || !cli) throw new Error('Sui SDK not ready — refresh the page.');
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const tx = Tx.from(bytes);
+    const result = await window.signAndExecuteTx(tx);
+    if (result?.effects?.status?.status === 'failure') {
+      throw new Error(result.effects.status.error || 'on-chain failure');
+    }
+    if (result?.digest) {
+      try { await cli.waitForTransaction({ digest: result.digest, timeout: 30000 }); } catch (_) {}
+    }
+    return result?.digest || result?.effects?.transactionDigest;
+  }
+
+  // ── tier selector ─────────────────────────────────────────────
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-st-tier]');
+    if (!t) return;
+    document.querySelectorAll('[data-st-tier]').forEach((b) => b.classList.remove('active'));
+    t.classList.add('active');
+    stkSelectedTier = Number(t.dataset.stTier);
+  });
+
+  // ── stake button ─────────────────────────────────────────────
+  document.getElementById('stStakeBtn')?.addEventListener('click', async () => {
+    try {
+      const sender = senderOrThrow();
+      const amount = Number(document.getElementById('stStakeAmount').value);
+      if (!amount || amount < 100) throw new Error('Minimum stake is 100 AGENT.');
+      setStatus('Building transaction…');
+      const built = await postBuild('/staking/build-stake-tx', {
+        sender, amountRaw: toRaw(amount), tier: stkSelectedTier,
+      });
+      setStatus('Waiting for wallet signature…');
+      const digest = await signTxBytes(built.txBytes);
+      setStatus('✅ Staked! ' + (digest ? digest.slice(0, 8) + '…' : ''), 'var(--green)');
+      setTimeout(() => { stRefreshMine(); stRefreshStats(); stRefreshLeaderboard(); }, 1500);
+    } catch (e) {
+      setStatus('❌ ' + (e.message || e), '#ff8080');
+    }
+  });
+
+  // ── refresh "my stakes" ──────────────────────────────────────
+  async function stRefreshMine() {
+    const box = document.getElementById('stMyReceipts');
+    if (!box) return;
+    const addr = window.connectedWallet?.address;
+    if (!addr) { box.innerHTML = '<div class="body-text" style="text-align:center;padding:32px 0">Connect wallet to see your stakes.</div>'; return; }
+    box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0">Loading…</div>';
+    try {
+      const r = await fetch(STK_API + '/staking/positions/' + addr).then((r) => r.json());
+      const list = r?.receipts || r?.positions || [];
+      if (!list.length) { box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0">No active stakes yet.</div>'; return; }
+      box.innerHTML = list.map((p) => {
+        const unlocked = (p.unlockMs || 0) <= Date.now();
+        const tierLbl = TIER_LABELS[Number(p.tier) || 0] || '?';
+        return `<div class="stat-tile" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div class="lbl">${tierLbl}</div>
+            <div class="val">${fmtAgent(p.amountRaw)}</div>
+            <div class="font-mono" style="font-size:0.65rem;color:var(--text-faint);margin-top:4px">Pending: ${fmtAgent(p.pendingRaw || '0')}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-ghost" style="font-size:0.7rem;padding:6px 12px;min-height:32px" data-st-claim="${p.receiptId}">Claim</button>
+            <button class="btn-ghost" style="font-size:0.7rem;padding:6px 12px;min-height:32px" data-st-unstake="${p.receiptId}" ${unlocked ? '' : 'disabled title="Still locked"'}>Unstake</button>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0;color:#ff8080">Could not load: ' + (e.message || e) + '</div>';
+    }
+  }
+  document.getElementById('stRefreshMine')?.addEventListener('click', stRefreshMine);
+
+  // claim / unstake buttons (delegated)
+  document.addEventListener('click', async (e) => {
+    const claimBtn = e.target.closest('[data-st-claim]');
+    const unstakeBtn = e.target.closest('[data-st-unstake]');
+    if (!claimBtn && !unstakeBtn) return;
+    const receiptId = (claimBtn || unstakeBtn).dataset.stClaim || (claimBtn || unstakeBtn).dataset.stUnstake;
+    const path = claimBtn ? '/staking/build-claim-tx' : '/staking/build-unstake-tx';
+    try {
+      const sender = senderOrThrow();
+      setStatus((claimBtn ? 'Claiming…' : 'Unstaking…'));
+      const built = await postBuild(path, { sender, receiptId });
+      const digest = await signTxBytes(built.txBytes);
+      setStatus('✅ Done. ' + (digest ? digest.slice(0, 8) + '…' : ''), 'var(--green)');
+      setTimeout(stRefreshMine, 1500);
+    } catch (err) {
+      setStatus('❌ ' + (err.message || err), '#ff8080');
+    }
+  });
+
+  // ── stats ────────────────────────────────────────────────────
+  async function stRefreshStats() {
+    try {
+      const r = await fetch(STK_API + '/staking/stats').then((r) => r.json());
+      const totalEl = document.getElementById('stTotalStaked');
+      const cntEl = document.getElementById('stStakerCount');
+      if (totalEl) totalEl.textContent = fmtAgent(r?.totalRaw || '0');
+      if (cntEl) cntEl.textContent = String(r?.stakerCount ?? '—');
+      const addr = window.connectedWallet?.address;
+      if (addr) {
+        const me = await fetch(STK_API + '/staking/positions/' + addr).then((r) => r.json());
+        document.getElementById('stMyStake').textContent = fmtAgent(me?.totalRaw || '0');
+        document.getElementById('stMyScore').textContent = String(me?.weightedScore || 0);
+      }
+    } catch (_) {}
+  }
+
+  // ── leaderboard ──────────────────────────────────────────────
+  async function stRefreshLeaderboard() {
+    const box = document.getElementById('stLeaderboard');
+    if (!box) return;
+    try {
+      const r = await fetch(STK_API + '/staking/leaderboard').then((r) => r.json());
+      const list = r?.leaderboard || [];
+      if (!list.length) { box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0">No stakers yet — be the first!</div>'; return; }
+      box.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">' + list.slice(0, 10).map((row, i) => {
+        const addr = row.staker || row.address;
+        const short = addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : '?';
+        return `<div class="stat-tile" style="display:flex;align-items:center;justify-content:space-between">
+          <span class="font-mono" style="font-size:0.78rem"><b style="color:var(--cyan)">#${i + 1}</b> ${short}</span>
+          <span class="font-mono" style="font-size:0.78rem;color:#fff">${fmtAgent(row.totalRaw)}</span>
+        </div>`;
+      }).join('') + '</div>';
+    } catch (e) {
+      box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0;color:#ff8080">Could not load.</div>';
+    }
+  }
+
+  // ── creator pools ────────────────────────────────────────────
+  async function stRefreshPools() {
+    const box = document.getElementById('stCreatorPools');
+    if (!box) return;
+    try {
+      const r = await fetch(STK_API + '/staking/pools').then((r) => r.json());
+      stkPoolCache = r?.pools || [];
+      if (!stkPoolCache.length) { box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0">No creator pools yet.</div>'; return; }
+      box.innerHTML = stkPoolCache.map((p, idx) => {
+        const ended = !!p.ended;
+        return `<div class="stat-tile" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div class="lbl">${ended ? '🔓 ENDED' : '🟢 ACTIVE'}</div>
+            <div class="val" style="font-size:0.85rem;font-family:'Share Tech Mono',monospace">${(p.poolId || '').slice(0, 18)}…</div>
+          </div>
+          <button class="btn-ghost" style="font-size:0.7rem;padding:6px 12px;min-height:32px" data-st-pool-join="${idx}" ${ended ? 'disabled' : ''}>Join (100 AGENT)</button>
+        </div>`;
+      }).join('');
+    } catch (_) {
+      box.innerHTML = '<div class="body-text" style="text-align:center;padding:24px 0">Could not load pools.</div>';
+    }
+  }
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-st-pool-join]');
+    if (!btn) return;
+    const pool = stkPoolCache[Number(btn.dataset.stPoolJoin)];
+    if (!pool) return;
+    try {
+      const sender = senderOrThrow();
+      setStatus('Joining pool…');
+      const built = await postBuild('/staking/build-join-pool-tx', {
+        sender, poolId: pool.poolId, memeType: pool.memeType, amountRaw: toRaw(100),
+      });
+      const digest = await signTxBytes(built.txBytes);
+      setStatus('✅ Joined! ' + (digest ? digest.slice(0, 8) + '…' : ''), 'var(--green)');
+    } catch (err) { setStatus('❌ ' + (err.message || err), '#ff8080'); }
+  });
+
+  // ── indexer health badge ────────────────────────────────────
+  async function stRefreshIndexer() {
+    try {
+      const r = await fetch(STK_API + '/staking/indexer-status').then((r) => r.json()).catch(() => null);
+      const dot = document.querySelector('[data-st-indexer-dot]');
+      const txt = document.querySelector('[data-st-indexer-text]');
+      if (!dot || !txt) return;
+      const ageMs = r?.ageMs ?? 999999;
+      const age = ageMs < 60000 ? Math.round(ageMs / 1000) + 's' : Math.round(ageMs / 60000) + 'm';
+      if (ageMs < 120000) { dot.style.color = 'var(--green)'; txt.textContent = 'indexer: live · ' + age; }
+      else if (ageMs < 300000) { dot.style.color = '#ffa500'; txt.textContent = 'indexer: lagging · ' + age; }
+      else { dot.style.color = '#ff5050'; txt.textContent = 'indexer: stale · ' + age; }
+    } catch (_) {}
+  }
+  document.getElementById('stIndexerBadge')?.addEventListener('click', stRefreshIndexer);
+
+  // ── auto-load when staking tab activates ────────────────────
+  function stOnRoute() {
+    if (location.hash !== '#/staking') return;
+    stRefreshStats(); stRefreshMine(); stRefreshLeaderboard(); stRefreshPools(); stRefreshIndexer();
+  }
+  window.addEventListener('hashchange', stOnRoute);
+  // Initial load if user lands on /staking
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stOnRoute);
+  else stOnRoute();
+})();
 
 </script>
 </body>
